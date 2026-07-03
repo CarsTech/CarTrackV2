@@ -799,6 +799,9 @@ small { font-size: 0.8125rem; }
 
 /* ─── Forms ──────────────────────────────────────────── */
 .form-group { margin-bottom: 18px; }
+.input-currency-wrap { position: relative; display: flex; align-items: center; }
+.input-currency-wrap input { flex: 1; padding-right: 48px !important; }
+.input-currency-suffix { position: absolute; right: 13px; font-size: 0.82rem; font-weight: 600; color: var(--text-muted); pointer-events: none; }
 .form-group:last-child { margin-bottom: 0; }
 label {
   display: block;

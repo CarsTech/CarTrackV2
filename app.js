@@ -344,6 +344,9 @@ function formatDate(dateStr) {
 function getUnit() {
   return (appData && appData.settings && appData.settings.distanceUnit) || 'km';
 }
+function getCurrency() {
+  return (appData && appData.settings && appData.settings.currency) || 'RON';
+}
 
 function formatKm(km) {
   if (km == null || km === '') return '—';
@@ -396,6 +399,7 @@ function defaultData() {
     settings: {
       notificationsEnabled: false,
       distanceUnit: 'km',
+      currency: 'RON',
     },
   };
 }
@@ -426,8 +430,9 @@ function migrateData(data) {
   // Future schema migrations go here.
   if (!data.schemaVersion) data.schemaVersion = 1;
   if (!data.customTypes)   data.customTypes   = [];
-  if (!data.settings)      data.settings      = { notificationsEnabled: false, distanceUnit: 'km' };
+  if (!data.settings)      data.settings      = { notificationsEnabled: false, distanceUnit: 'km', currency: 'RON' };
   if (!data.settings.distanceUnit || data.settings.distanceUnit === 'mi') data.settings.distanceUnit = 'km';
+  if (!data.settings.currency) data.settings.currency = 'RON';
   if (!data.cars)          data.cars           = [];
   data.cars.forEach(car => {
     if (!car.maintenanceItems) car.maintenanceItems = [];
@@ -2359,6 +2364,20 @@ function renderSettings() {
             <button class="btn btn-sm ${getUnit()==='miles' ? 'btn-primary' : 'btn-secondary'}" onclick="setDistanceUnit('miles')">miles</button>
           </div>
         </div>
+        <div class="settings-item">
+          <div class="settings-item-label">
+            <strong>Currency</strong>
+            <span>Used for costs across the app</span>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+            ${['USD','EUR'].map(c=>`<button class="btn btn-sm ${getCurrency()===c?'btn-primary':'btn-secondary'}" onclick="setCurrency('${c}')">${c}</button>`).join('')}
+            <input type="text" id="currency-custom-input" placeholder="Other…" maxlength="8"
+              value="${['USD','EUR'].includes(getCurrency())?'':escHtml(getCurrency())}"
+              style="padding:6px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-size:.875rem;width:80px;text-transform:uppercase;"
+              oninput="this.value=this.value.toUpperCase()"
+              onchange="if(this.value.trim())setCurrency(this.value.trim().toUpperCase())">
+          </div>
+        </div>
       </div>
 
       <div class="settings-section">
@@ -2421,6 +2440,11 @@ function selectCarColor(color) {
 
 function setDistanceUnit(unit) {
   appData.settings.distanceUnit = unit;
+  saveData();
+  renderSettings();
+}
+function setCurrency(cur) {
+  appData.settings.currency = cur;
   saveData();
   renderSettings();
 }
@@ -3013,7 +3037,7 @@ function openLogMaintenanceModal(carId, existingItemId, defaultDate) {
         <div id="mf-cost-row" style="${isScheduled ? 'display:none;' : ''}">
           <div class="form-group">
             <label for="mf-cost">Cost <span class="optional">optional</span></label>
-            <input type="number" id="mf-cost" min="0" step="0.01" inputmode="decimal" placeholder="0.00" value="${item && item.cost != null ? item.cost : ''}">
+            <div class="input-currency-wrap"><input type="number" id="mf-cost" min="0" step="0.01" inputmode="decimal" placeholder="0.00" value="${item && item.cost != null ? item.cost : ''}"><span class="input-currency-suffix">${getCurrency()}</span></div>
           </div>
         </div>
 
@@ -3498,7 +3522,7 @@ function openEditHistoryModal(carId, entryId) {
         `}
         <div class="form-group">
           <label for="hf-cost">Cost <span class="optional">optional</span></label>
-          <input type="number" id="hf-cost" min="0" step="0.01" inputmode="decimal" placeholder="0.00" value="${entry.cost != null ? entry.cost : ''}">
+          <div class="input-currency-wrap"><input type="number" id="hf-cost" min="0" step="0.01" inputmode="decimal" placeholder="0.00" value="${entry.cost != null ? entry.cost : ''}"><span class="input-currency-suffix">${getCurrency()}</span></div>
         </div>
         <div class="form-group">
           <label>Photos (Receipt / Invoice) <span class="optional">optional</span></label>
